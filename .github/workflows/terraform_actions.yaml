@@ -1,0 +1,40 @@
+name: "Terraform Code Quality Check"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform_validation:
+    name: "Terraform Formatting & Validation"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets[format('AWS_ACCESS_KEY_ID_{0}', vars.ENVIRONMENT)] }}
+          aws-secret-access-key: ${{ secrets[format('AWS_SECRET_ACCESS_KEY_{0}', vars.ENVIRONMENT)] }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Initialize Terraform (Without Backend)
+        run: terraform init -backend=false
+
+      - name: Check Terraform Formatting
+        run: terraform fmt -check -recursive
+
+      - name: Validate Terraform Configuration
+        run: terraform validate
