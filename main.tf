@@ -21,3 +21,21 @@ module "subnets" {
   private_subnet_cidrs = var.private_subnet_cidrs
   igw_id               = module.internet_gateway.igw_id
 }
+
+module "security_group" {
+  source = "./modules/security_groups"
+
+  vpc_id           = module.vpc.vpc_id
+  environment      = var.environment
+  application_port = var.application_port
+}
+
+module "ec2" {
+  source = "./modules/ec2"
+
+  public_subnet_id  = module.subnets.public_subnet_ids[0]
+  security_group_id = module.security_group.security_group_id
+  custom_ami_id     = var.custom_ami_id
+  environment       = var.environment
+  instance_type     = var.instance_type
+}
