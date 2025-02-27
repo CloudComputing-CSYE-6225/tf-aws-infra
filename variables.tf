@@ -35,9 +35,9 @@ variable "private_subnet_cidrs" {
 }
 
 
-variable custom_ami_id {
+variable "custom_ami_id" {
   description = "AMI ID of our custom image"
-  type = string
+  type        = string
 }
 
 variable "application_port" {
