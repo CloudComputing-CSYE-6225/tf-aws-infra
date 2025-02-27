@@ -33,3 +33,21 @@ variable "private_subnet_cidrs" {
   type        = list(string)
   default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 }
+
+
+variable "custom_ami_id" {
+  description = "AMI ID of our custom image"
+  type        = string
+}
+
+variable "application_port" {
+  description = "Application Port"
+  type        = string
+  default     = "3000"
+}
+
+variable "instance_type" {
+  description = "Instance Type"
+  type        = string
+  default     = "t2.micro"
+}
