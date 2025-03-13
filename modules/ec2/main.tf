@@ -1,4 +1,4 @@
-resource "aws_instance" "main" {
+resource "aws_instance" "app_server" {
   ami                     = var.custom_ami_id
   instance_type           = var.instance_type
   subnet_id               = var.public_subnet_id
@@ -9,8 +9,7 @@ resource "aws_instance" "main" {
     volume_type           = "gp2"
     delete_on_termination = true
   }
-
   tags = {
-    Name = "${var.environment}-ec2"
+    Name = "EC2-${var.environment}"
   }
 }
