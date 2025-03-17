@@ -39,3 +39,13 @@ module "ec2" {
   environment       = var.environment
   instance_type     = var.instance_type
 }
+
+module "s3" {
+  source = "./modules/s3"
+  s3_bucket_arn = module.s3.bucket_arn
+}
+
+module "iam" {
+  source       = "./modules/iam"
+  s3_bucket_arn = module.s3.bucket_arn
+}
