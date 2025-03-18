@@ -41,11 +41,11 @@ module "ec2" {
 }
 
 module "s3" {
-  source = "./modules/s3"
+  source        = "./modules/s3"
   s3_bucket_arn = module.s3.bucket_arn
 }
 
 module "iam" {
-  source       = "./modules/iam"
+  source        = "./modules/iam"
   s3_bucket_arn = module.s3.bucket_arn
 }
