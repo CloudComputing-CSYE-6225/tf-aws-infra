@@ -6,8 +6,17 @@ resource "aws_s3_bucket" "assignment_bucket" {
   force_destroy = true # Allow Terraform to delete the bucket even if it's not empty
 }
 
+resource "aws_s3_bucket_ownership_controls" "bucket_ownership" {
+  bucket = aws_s3_bucket.assignment_bucket.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 # Separate resource for bucket ACL
 resource "aws_s3_bucket_acl" "bucket_acl" {
+  depends_on = [aws_s3_bucket_ownership_controls.bucket_ownership]
   bucket = aws_s3_bucket.assignment_bucket.id
   acl    = "private"
 }

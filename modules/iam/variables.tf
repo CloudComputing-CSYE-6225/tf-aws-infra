@@ -1,6 +1,9 @@
-variable "s3_bucket_arn" {
-  description = "The ARN of the S3 bucket"
+variable "environment" {
+  description = "Environment name"
   type        = string
 }
 
-// Remember to move it to main variables file later on
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket"
+  type        = string
+}
