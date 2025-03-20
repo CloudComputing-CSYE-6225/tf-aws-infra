@@ -52,3 +52,65 @@ variable "instance_type" {
   type        = string
   default     = "t2.micro"
 }
+
+# RDS Security Group Variables
+variable "db_port" {
+  description = "Database port for PostgreSQL"
+  type        = number
+  default     = 5432
+}
+
+variable "db_engine" {
+  description = "Database engine type"
+  type        = string
+  default     = "postgres"
+}
+
+variable "db_name" {
+  description = "Name of the database"
+  type        = string
+  default     = "csye6225"
+}
+
+variable "db_username" {
+  description = "Master username for the RDS instance"
+  type        = string
+  default     = "csye6225"
+}
+
+variable "db_password" {
+  description = "Master password for the RDS instance"
+  type        = string
+  sensitive   = true
+  # No default for security reasons - should be passed as a variable
+}
+
+variable "db_instance_class" {
+  description = "The instance type of the RDS instance"
+  type        = string
+  default     = "db.t3.micro"  # Cheapest one as specified in requirements
+}
+
+variable "db_multi_az" {
+  description = "Specifies if the RDS instance is multi-AZ"
+  type        = bool
+  default     = false  # As per requirements
+}
+
+variable "db_publicly_accessible" {
+  description = "Controls if the RDS instance should be publicly accessible"
+  type        = bool
+  default     = false  # As per requirements
+}
+
+variable "db_engine_version" {
+  description = "The version of the database engine"
+  type        = string
+  default     = "17.4"
+}
+
+variable "db_parameter_group_family" {
+  description = "The family of the DB parameter group"
+  type        = string
+  default     = "postgres17"
+}

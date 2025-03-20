@@ -51,3 +51,32 @@ resource "aws_security_group" "main" {
     Name = "application-security-group"
   }
 }
+
+# Add new DB security group
+resource "aws_security_group" "db" {
+  name        = "${var.environment}-db-sg"
+  description = "Security group for database instances"
+  vpc_id      = var.vpc_id
+
+  # Database access from application security group
+  ingress {
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.main.id]
+    description     = "Allow database traffic from application security group"
+  }
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = {
+    Name = "database-security-group"
+  }
+}
