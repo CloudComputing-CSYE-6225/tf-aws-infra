@@ -88,19 +88,19 @@ variable "db_password" {
 variable "db_instance_class" {
   description = "The instance type of the RDS instance"
   type        = string
-  default     = "db.t3.micro"  # Cheapest one as specified in requirements
+  default     = "db.t3.micro" # Cheapest one as specified in requirements
 }
 
 variable "db_multi_az" {
   description = "Specifies if the RDS instance is multi-AZ"
   type        = bool
-  default     = false  # As per requirements
+  default     = false # As per requirements
 }
 
 variable "db_publicly_accessible" {
   description = "Controls if the RDS instance should be publicly accessible"
   type        = bool
-  default     = false  # As per requirements
+  default     = false # As per requirements
 }
 
 variable "db_engine_version" {

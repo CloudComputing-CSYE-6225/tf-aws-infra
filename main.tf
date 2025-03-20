@@ -23,8 +23,8 @@ module "subnets" {
 }
 
 module "security_group" {
-  source = "./modules/security_groups"
-  db_port = var.db_port
+  source           = "./modules/security_groups"
+  db_port          = var.db_port
   vpc_id           = module.vpc.vpc_id
   environment      = var.environment
   application_port = var.application_port
@@ -44,7 +44,7 @@ module "ec2" {
   db_password           = var.db_password
   db_name               = module.rds.db_instance_name
   s3_bucket_name        = module.s3.bucket_name
-  application_port = var.application_port
+  application_port      = var.application_port
   db_host               = replace(module.rds.db_instance_endpoint, ":5432", "")
   db_port               = var.db_port
 }
@@ -55,27 +55,27 @@ module "s3" {
 }
 
 module "iam" {
-  source = "./modules/iam"
-  s3_bucket_name =  module.s3.bucket_name
-  environment   = var.environment
+  source         = "./modules/iam"
+  s3_bucket_name = module.s3.bucket_name
+  environment    = var.environment
 }
 
 module "db_parameter_group" {
   source = "./modules/rds_parameter_group"
 
-  environment             = var.environment
+  environment               = var.environment
   db_parameter_group_family = var.db_parameter_group_family
 }
 
 module "rds" {
   source = "./modules/rds"
 
-  environment            = var.environment
-  private_subnet_ids     = module.subnets.private_subnet_ids
-  db_security_group_id   = module.security_group.db_security_group_id # Updated to use existing security group module
+  environment             = var.environment
+  private_subnet_ids      = module.subnets.private_subnet_ids
+  db_security_group_id    = module.security_group.db_security_group_id # Updated to use existing security group module
   db_parameter_group_name = module.db_parameter_group.parameter_group_name
-  db_engine              = var.db_engine
-  db_engine_version      = var.db_engine_version
-  db_instance_class      = var.db_instance_class
-  db_password            = var.db_password
+  db_engine               = var.db_engine
+  db_engine_version       = var.db_engine_version
+  db_instance_class       = var.db_instance_class
+  db_password             = var.db_password
 }
