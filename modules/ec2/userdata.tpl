@@ -9,6 +9,7 @@ DB_NAME=${db_name}
 DB_USERNAME=${db_username}
 DB_PASSWORD=${db_password}
 S3_BUCKET_NAME=${s3_bucket_name}
+NODE_ENV=production
 EOL
 
 # Set proper ownership and permissions for security
