@@ -17,8 +17,8 @@ resource "aws_s3_bucket_ownership_controls" "bucket_ownership" {
 # Separate resource for bucket ACL
 resource "aws_s3_bucket_acl" "bucket_acl" {
   depends_on = [aws_s3_bucket_ownership_controls.bucket_ownership]
-  bucket = aws_s3_bucket.assignment_bucket.id
-  acl    = "private"
+  bucket     = aws_s3_bucket.assignment_bucket.id
+  acl        = "private"
 }
 
 # Enable default encryption for the S3 bucket
