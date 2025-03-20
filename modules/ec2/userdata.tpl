@@ -8,7 +8,6 @@ DB_PORT=${db_port}
 DB_NAME=${db_name}
 DB_USERNAME=${db_username}
 DB_PASSWORD=${db_password}
-DB_URI=postgres://${db_username}:${db_password}@${db_host}:${db_port}/${db_name}
 S3_BUCKET_NAME=${s3_bucket_name}
 EOL
 
