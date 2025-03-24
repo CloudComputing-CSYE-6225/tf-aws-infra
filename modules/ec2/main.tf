@@ -20,6 +20,7 @@ resource "aws_instance" "app_server" {
     db_port          = var.db_port
     db_name          = var.db_name
     s3_bucket_name   = var.s3_bucket_name
+    environment      = var.environment
   })
 
   tags = {
