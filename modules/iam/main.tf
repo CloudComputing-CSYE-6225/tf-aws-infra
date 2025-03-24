@@ -119,6 +119,37 @@ resource "aws_iam_policy" "iam_access_policy" {
   })
 }
 
+# Add CloudWatch policy
+resource "aws_iam_policy" "cloudwatch_policy" {
+  name        = "${var.environment}-cloudwatch-policy"
+  description = "Allow EC2 instances to send logs and metrics to CloudWatch"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:PutMetricData",
+          "ec2:DescribeTags",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups",
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Attach CloudWatch policy to the role
+resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy.arn
+}
+
 # Attach the RDS policy to the role
 resource "aws_iam_role_policy_attachment" "rds_access_attachment" {
   role       = aws_iam_role.ec2_s3_access_role.name
