@@ -93,10 +93,12 @@ module "rds" {
 
 
 module "auto_scaling" {
-  source                = "./modules/auto_scaling"
+  source = "./modules/auto_scaling"
+
   environment           = var.environment
   custom_ami_id         = var.custom_ami_id
   instance_type         = var.instance_type
+  key_name              = var.key_name
   security_group_id     = module.security_group.security_group_id
   instance_profile_name = module.iam.ec2_instance_profile_name
   private_subnet_ids    = module.subnets.private_subnet_ids

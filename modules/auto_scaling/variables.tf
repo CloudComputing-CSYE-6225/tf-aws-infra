@@ -25,3 +25,5 @@ variable "db_port" {}
 variable "db_name" {}
 
 variable "s3_bucket_name" {}
+
+variable "key_name" {}
