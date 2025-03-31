@@ -33,11 +33,11 @@ module "load_balancer" {
 
 
 module "security_group" {
-  source           = "./modules/security_groups"
-  db_port          = var.db_port
-  vpc_id           = module.vpc.vpc_id
-  environment      = var.environment
-  application_port = var.application_port
+  source               = "./modules/security_groups"
+  db_port              = var.db_port
+  vpc_id               = module.vpc.vpc_id
+  environment          = var.environment
+  application_port     = var.application_port
   lb_security_group_id = module.load_balancer.lb_security_group_id
 }
 
@@ -93,7 +93,7 @@ module "rds" {
 
 
 module "auto_scaling" {
-  source = "./modules/auto_scaling"
+  source                = "./modules/auto_scaling"
   environment           = var.environment
   custom_ami_id         = var.custom_ami_id
   instance_type         = var.instance_type

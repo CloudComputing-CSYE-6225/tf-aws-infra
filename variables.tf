@@ -8,7 +8,7 @@ variable "environment" {
   description = "Environment name"
   type        = string
 
-  default     = "dev"
+  default = "dev"
 }
 
 variable "aws_profile" {
