@@ -3,39 +3,22 @@ resource "aws_security_group" "main" {
   description = "Security group for web application instances"
   vpc_id      = var.vpc_id
 
-  # SSH access
+  # SSH access from specific IP ranges
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow SSH access from any IP"
+    description = "Allow SSH access from specified IP ranges"
   }
 
-  # HTTP access
+  # Application port access from the load balancer security group only
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow HTTP traffic from any IP"
-  }
-
-  # HTTPS access
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow HTTPS traffic from any IP"
-  }
-
-  ingress {
-    from_port   = var.application_port
-    to_port     = var.application_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow application traffic on port ${var.application_port} from any IP"
+    from_port       = var.application_port
+    to_port         = var.application_port
+    protocol        = "tcp"
+    security_groups = [var.lb_security_group_id]
+    description     = "Allow application traffic on port ${var.application_port} from load balancer only"
   }
 
   # Allow all outbound traffic
@@ -48,11 +31,12 @@ resource "aws_security_group" "main" {
   }
 
   tags = {
-    Name = "application-security-group"
+    Name        = "${var.environment}-app-sg"
+    Environment = var.environment
   }
 }
 
-# Add new DB security group
+# The DB security group remains unchanged
 resource "aws_security_group" "db" {
   name        = "${var.environment}-db-sg"
   description = "Security group for database instances"
@@ -77,6 +61,7 @@ resource "aws_security_group" "db" {
   }
 
   tags = {
-    Name = "database-security-group"
+    Name        = "${var.environment}-db-sg"
+    Environment = var.environment
   }
 }

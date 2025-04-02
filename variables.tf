@@ -7,7 +7,8 @@ variable "aws_region" {
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "dev"
+
+  default = "dev"
 }
 
 variable "aws_profile" {
@@ -113,4 +114,10 @@ variable "db_parameter_group_family" {
   description = "The family of the DB parameter group"
   type        = string
   default     = "postgres17"
+}
+
+variable "key_name" {
+  description = "Name of the SSH key pair to use for EC2 instances"
+  type        = string
+  default     = null
 }

@@ -22,12 +22,23 @@ module "subnets" {
   igw_id               = module.internet_gateway.igw_id
 }
 
+module "load_balancer" {
+  source = "./modules/load_balancer"
+
+  environment       = var.environment
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_ids = module.subnets.public_subnet_ids
+  application_port  = var.application_port
+}
+
+
 module "security_group" {
-  source           = "./modules/security_groups"
-  db_port          = var.db_port
-  vpc_id           = module.vpc.vpc_id
-  environment      = var.environment
-  application_port = var.application_port
+  source               = "./modules/security_groups"
+  db_port              = var.db_port
+  vpc_id               = module.vpc.vpc_id
+  environment          = var.environment
+  application_port     = var.application_port
+  lb_security_group_id = module.load_balancer.lb_security_group_id
 }
 
 module "ec2" {
@@ -78,4 +89,25 @@ module "rds" {
   db_engine_version       = var.db_engine_version
   db_instance_class       = var.db_instance_class
   db_password             = var.db_password
+}
+
+
+module "auto_scaling" {
+  source = "./modules/auto_scaling"
+
+  environment           = var.environment
+  custom_ami_id         = var.custom_ami_id
+  instance_type         = var.instance_type
+  key_name              = var.key_name
+  security_group_id     = module.security_group.security_group_id
+  instance_profile_name = module.iam.ec2_instance_profile_name
+  private_subnet_ids    = module.subnets.private_subnet_ids
+  target_group_arn      = module.load_balancer.target_group_arn
+  application_port      = var.application_port
+  db_username           = module.rds.db_instance_username
+  db_password           = var.db_password
+  db_host               = replace(module.rds.db_instance_endpoint, ":5432", "")
+  db_port               = var.db_port
+  db_name               = module.rds.db_instance_name
+  s3_bucket_name        = module.s3.bucket_name
 }
