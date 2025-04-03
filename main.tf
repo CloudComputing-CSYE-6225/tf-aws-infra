@@ -111,3 +111,12 @@ module "auto_scaling" {
   db_name               = module.rds.db_instance_name
   s3_bucket_name        = module.s3.bucket_name
 }
+
+module "route53" {
+  source = "./modules/route53"
+
+  hosted_zone_id         = var.hosted_zone_id
+  domain_name            = var.domain_name
+  load_balancer_dns_name = module.load_balancer.lb_dns_name
+  load_balancer_zone_id  = module.load_balancer.lb_zone_id
+}

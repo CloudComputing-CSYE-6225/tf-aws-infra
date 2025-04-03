@@ -40,7 +40,7 @@ resource "aws_autoscaling_group" "webapp_asg" {
   name                = "${var.environment}-webapp-asg"
   min_size            = 3
   max_size            = 5
-  desired_capacity    = 1
+  desired_capacity    = 3
   vpc_zone_identifier = var.private_subnet_ids
   target_group_arns   = [var.target_group_arn]
   health_check_type   = "ELB"
