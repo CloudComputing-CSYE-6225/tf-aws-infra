@@ -121,3 +121,15 @@ variable "key_name" {
   type        = string
   default     = null
 }
+
+variable "hosted_zone_id" {
+  description = "The ID of the hosted zone for your domain in Route53"
+  type        = string
+  default     = null
+}
+
+variable "domain_name" {
+  description = "The domain name for your application"
+  type        = string
+  default     = null
+}
