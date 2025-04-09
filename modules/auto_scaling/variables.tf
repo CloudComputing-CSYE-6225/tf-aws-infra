@@ -27,3 +27,7 @@ variable "db_name" {}
 variable "s3_bucket_name" {}
 
 variable "key_name" {}
+
+variable "kms_key_arn" {}
+
+variable "aws_region" {}

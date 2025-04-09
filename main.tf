@@ -63,6 +63,7 @@ module "ec2" {
 module "s3" {
   source        = "./modules/s3"
   s3_bucket_arn = module.s3.bucket_arn
+  kms_key_arn   = module.kms_s3.key_arn
 }
 
 module "iam" {
@@ -89,6 +90,7 @@ module "rds" {
   db_engine_version       = var.db_engine_version
   db_instance_class       = var.db_instance_class
   db_password             = var.db_password
+  kms_key_arn             = module.kms_rds.key_arn
 }
 
 
@@ -110,6 +112,8 @@ module "auto_scaling" {
   db_port               = var.db_port
   db_name               = module.rds.db_instance_name
   s3_bucket_name        = module.s3.bucket_name
+  kms_key_arn           = module.kms_ec2.key_arn
+  aws_region            = var.aws_region
 }
 
 module "route53" {
@@ -119,4 +123,67 @@ module "route53" {
   domain_name            = var.domain_name
   load_balancer_dns_name = module.load_balancer.lb_dns_name
   load_balancer_zone_id  = module.load_balancer.lb_zone_id
+}
+
+module "kms_ec2" {
+  source                  = "./modules/kms"
+  environment             = var.environment
+  key_name                = "ec2"
+  description             = "KMS key for EC2 encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = var.tags
+  key_usage               = var.key_usage
+}
+
+module "kms_rds" {
+  source                  = "./modules/kms"
+  environment             = var.environment
+  key_name                = "rds"
+  description             = "KMS key for RDS encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  key_usage               = var.key_usage
+  tags                    = var.tags
+}
+
+module "kms_s3" {
+  source                  = "./modules/kms"
+  environment             = var.environment
+  key_name                = "s3"
+  description             = "KMS key for S3 bucket encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  key_usage               = var.key_usage
+  tags                    = var.tags
+}
+
+module "kms_secretsmanager" {
+  source                  = "./modules/kms"
+  environment             = var.environment
+  key_name                = "secretsmanager"
+  description             = "KMS key for Secrets Manager encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  key_usage               = var.key_usage
+  tags                    = var.tags
+}
+
+# Generate a random password for the database
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+# Store the database password in Secrets Manager
+module "db_password_secret" {
+  source                  = "./modules/secretsmanager"
+  environment             = var.environment
+  secret_name             = "db-password"
+  description             = "RDS database password"
+  kms_key_id              = module.kms_secretsmanager.key_arn
+  secret_string           = random_password.db_password.result
+  recovery_window_in_days = var.recovery_window_in_days
+  tags                    = var.tags
 }

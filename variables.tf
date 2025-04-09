@@ -133,3 +133,21 @@ variable "domain_name" {
   type        = string
   default     = null
 }
+
+variable "key_usage" {
+  description = "Specifies the intended use of the key (ENCRYPT_DECRYPT or KEY_AGREEMENT)"
+  type        = string
+  default     = "ENCRYPT_DECRYPT"
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the key"
+  type        = map(string)
+  default     = {}
+}
+
+variable "recovery_window_in_days" {
+  description = "Number of days that AWS Secrets Manager waits before it can delete the secret"
+  type        = number
+  default     = 30
+}
