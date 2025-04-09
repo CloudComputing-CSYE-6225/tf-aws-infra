@@ -132,6 +132,8 @@ module "kms_ec2" {
   description             = "KMS key for EC2 encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
+  tags                    = var.tags
+  key_usage               = var.key_usage
 }
 
 module "kms_rds" {
@@ -141,8 +143,8 @@ module "kms_rds" {
   description             = "KMS key for RDS encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage = var.key_usage
-  tags = var.tags
+  key_usage               = var.key_usage
+  tags                    = var.tags
 }
 
 module "kms_s3" {
@@ -152,8 +154,8 @@ module "kms_s3" {
   description             = "KMS key for S3 bucket encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage = var.key_usage
-  tags = var.tags
+  key_usage               = var.key_usage
+  tags                    = var.tags
 }
 
 module "kms_secretsmanager" {
@@ -163,8 +165,8 @@ module "kms_secretsmanager" {
   description             = "KMS key for Secrets Manager encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage = var.key_usage
-  tags = var.tags
+  key_usage               = var.key_usage
+  tags                    = var.tags
 }
 
 # Generate a random password for the database
@@ -176,12 +178,12 @@ resource "random_password" "db_password" {
 
 # Store the database password in Secrets Manager
 module "db_password_secret" {
-  source        = "./modules/secretsmanager"
-  environment   = var.environment
-  secret_name   = "db-password"
-  description   = "RDS database password"
-  kms_key_id    = module.kms_secretsmanager.key_arn
-  secret_string = random_password.db_password.result
+  source                  = "./modules/secretsmanager"
+  environment             = var.environment
+  secret_name             = "db-password"
+  description             = "RDS database password"
+  kms_key_id              = module.kms_secretsmanager.key_arn
+  secret_string           = random_password.db_password.result
   recovery_window_in_days = var.recovery_window_in_days
-  tags = var.tags
+  tags                    = var.tags
 }
