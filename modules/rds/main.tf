@@ -24,6 +24,8 @@ resource "aws_db_instance" "main" {
   publicly_accessible    = false
   skip_final_snapshot    = true
   multi_az               = false
+  storage_encrypted      = true
+  kms_key_id             = var.kms_key_arn
 
   tags = {
     Name        = "${var.environment}-rds"

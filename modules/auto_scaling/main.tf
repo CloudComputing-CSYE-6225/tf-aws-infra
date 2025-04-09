@@ -13,6 +13,19 @@ resource "aws_launch_template" "webapp" {
     security_groups             = [var.security_group_id]
   }
 
+  # Add block device mapping with encryption
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size           = 25
+      volume_type           = "gp2"
+      delete_on_termination = true
+      encrypted             = true
+      kms_key_id            = var.kms_key_arn
+    }
+  }
+
   user_data = base64encode(templatefile("${path.module}/userdata.tpl", {
     application_port = var.application_port
     db_username      = var.db_username
@@ -22,6 +35,8 @@ resource "aws_launch_template" "webapp" {
     db_name          = var.db_name
     s3_bucket_name   = var.s3_bucket_name
     environment      = var.environment
+    secrets_manager_region = var.aws_region
+    db_password_secret_name = "${var.environment}/db-password"
   }))
 
   tag_specifications {

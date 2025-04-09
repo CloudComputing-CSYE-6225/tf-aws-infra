@@ -1,13 +1,26 @@
 #!/bin/bash
 
+# Install AWS CLI if not already installed
+if ! command -v aws &> /dev/null; then
+  apt-get update
+  apt-get install -y awscli
+fi
+
+# Retrieve database password from Secrets Manager
+DB_PASSWORD=$(aws secretsmanager get-secret-value \
+  --region ${secrets_manager_region} \
+  --secret-id ${db_password_secret_name} \
+  --query SecretString \
+  --output text)
+
 # Create environment file for the application
-cat > /opt/csye6225/webapp/.env << 'EOL'
+cat > /opt/csye6225/webapp/.env << EOL
 PORT=${application_port}
 DB_HOST=${db_host}
 DB_PORT=${db_port}
 DB_NAME=${db_name}
 DB_USERNAME=${db_username}
-DB_PASSWORD=${db_password}
+DB_PASSWORD=$DB_PASSWORD
 S3_BUCKET_NAME=${s3_bucket_name}
 NODE_ENV=production
 EOL
