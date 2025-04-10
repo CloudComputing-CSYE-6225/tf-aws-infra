@@ -23,12 +23,12 @@ module "subnets" {
 }
 
 module "load_balancer" {
-  source = "./modules/load_balancer"
-
-  environment       = var.environment
-  vpc_id            = module.vpc.vpc_id
-  public_subnet_ids = module.subnets.public_subnet_ids
-  application_port  = var.application_port
+  source              = "./modules/load_balancer"
+  environment         = var.environment
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_ids   = module.subnets.public_subnet_ids
+  application_port    = var.application_port
+  ssl_certificate_arn = var.create_acm_certificate ? module.acm[0].certificate_arn : var.imported_certificate_arn
 }
 
 
@@ -41,25 +41,6 @@ module "security_group" {
   lb_security_group_id = module.load_balancer.lb_security_group_id
 }
 
-module "ec2" {
-  source = "./modules/ec2"
-
-  public_subnet_id      = module.subnets.public_subnet_ids[0]
-  security_group_id     = module.security_group.security_group_id
-  custom_ami_id         = var.custom_ami_id
-  environment           = var.environment
-  instance_type         = var.instance_type
-  instance_profile_name = module.iam.ec2_instance_profile_name
-  db_endpoint           = module.rds.db_instance_endpoint
-  db_username           = module.rds.db_instance_username
-  db_password           = var.db_password
-  db_name               = module.rds.db_instance_name
-  s3_bucket_name        = module.s3.bucket_name
-  application_port      = var.application_port
-  db_host               = replace(module.rds.db_instance_endpoint, ":5432", "")
-  db_port               = var.db_port
-}
-
 module "s3" {
   source        = "./modules/s3"
   s3_bucket_arn = module.s3.bucket_arn
@@ -67,9 +48,13 @@ module "s3" {
 }
 
 module "iam" {
-  source         = "./modules/iam"
-  s3_bucket_name = module.s3.bucket_name
-  environment    = var.environment
+  source              = "./modules/iam"
+  s3_bucket_name      = module.s3.bucket_name
+  environment         = var.environment
+  ec2_kms_key_arn     = module.kms_ec2.key_arn
+  rds_kms_key_arn     = module.kms_rds.key_arn
+  s3_kms_key_arn      = module.kms_s3.key_arn
+  secrets_kms_key_arn = module.kms_secretsmanager.key_arn
 }
 
 module "db_parameter_group" {
@@ -84,12 +69,12 @@ module "rds" {
 
   environment             = var.environment
   private_subnet_ids      = module.subnets.private_subnet_ids
-  db_security_group_id    = module.security_group.db_security_group_id # Updated to use existing security group module
+  db_security_group_id    = module.security_group.db_security_group_id
   db_parameter_group_name = module.db_parameter_group.parameter_group_name
   db_engine               = var.db_engine
   db_engine_version       = var.db_engine_version
   db_instance_class       = var.db_instance_class
-  db_password             = var.db_password
+  db_password             = random_password.db_password.result
   kms_key_arn             = module.kms_rds.key_arn
 }
 
@@ -107,7 +92,7 @@ module "auto_scaling" {
   target_group_arn      = module.load_balancer.target_group_arn
   application_port      = var.application_port
   db_username           = module.rds.db_instance_username
-  db_password           = var.db_password
+  db_password           = random_password.db_password.result
   db_host               = replace(module.rds.db_instance_endpoint, ":5432", "")
   db_port               = var.db_port
   db_name               = module.rds.db_instance_name
@@ -132,8 +117,9 @@ module "kms_ec2" {
   description             = "KMS key for EC2 encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  tags                    = var.tags
-  key_usage               = var.key_usage
+  tags                    = {
+    rotation_period_in_days = "90"
+  }
 }
 
 module "kms_rds" {
@@ -143,8 +129,9 @@ module "kms_rds" {
   description             = "KMS key for RDS encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage               = var.key_usage
-  tags                    = var.tags
+  tags = {
+    rotation_period_in_days = "90"
+  }
 }
 
 module "kms_s3" {
@@ -154,8 +141,9 @@ module "kms_s3" {
   description             = "KMS key for S3 bucket encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage               = var.key_usage
-  tags                    = var.tags
+  tags = {
+    rotation_period_in_days = "90"
+  }
 }
 
 module "kms_secretsmanager" {
@@ -165,8 +153,9 @@ module "kms_secretsmanager" {
   description             = "KMS key for Secrets Manager encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  key_usage               = var.key_usage
-  tags                    = var.tags
+  tags = {
+    rotation_period_in_days = "90"
+  }
 }
 
 # Generate a random password for the database
@@ -186,4 +175,12 @@ module "db_password_secret" {
   secret_string           = random_password.db_password.result
   recovery_window_in_days = var.recovery_window_in_days
   tags                    = var.tags
+}
+
+module "acm" {
+  source         = "./modules/acm"
+  count          = var.create_acm_certificate ? 1 : 0
+  domain_name    = var.domain_name
+  environment    = var.environment
+  hosted_zone_id = var.hosted_zone_id
 }

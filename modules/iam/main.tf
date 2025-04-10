@@ -119,35 +119,114 @@ resource "aws_iam_policy" "iam_access_policy" {
   })
 }
 
-# Add CloudWatch policy
-resource "aws_iam_policy" "cloudwatch_policy" {
-  name        = "${var.environment}-cloudwatch-policy"
-  description = "Allow EC2 instances to send logs and metrics to CloudWatch"
+# Policy for KMS operations
+resource "aws_iam_policy" "kms_access_policy" {
+  name        = "${var.environment}-kms-access-policy"
+  description = "Allow KMS operations for EC2 instances"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
         Action = [
-          "cloudwatch:PutMetricData",
-          "ec2:DescribeTags",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams",
-          "logs:DescribeLogGroups",
-          "logs:CreateLogStream",
-          "logs:CreateLogGroup"
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:RevokeGrant"
         ]
+        Effect = "Allow"
+        Resource = [
+          var.ec2_kms_key_arn,
+          var.rds_kms_key_arn,
+          var.s3_kms_key_arn,
+          var.secrets_kms_key_arn
+        ]
+      }
+    ]
+  })
+}
+
+# Policy for Secrets Manager operations
+resource "aws_iam_policy" "secrets_access_policy" {
+  name        = "${var.environment}-secrets-access-policy"
+  description = "Allow Secrets Manager operations for EC2 instances"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:secretsmanager:*:*:secret:${var.environment}/*"
+      }
+    ]
+  })
+}
+
+# Policy for Auto Scaling operations
+resource "aws_iam_policy" "autoscaling_access_policy" {
+  name        = "${var.environment}-autoscaling-access-policy"
+  description = "Allow Auto Scaling operations"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:DescribeTags",
+          "autoscaling:SetInstanceHealth",
+          "autoscaling:CompleteLifecycleAction"
+        ]
+        Effect   = "Allow"
         Resource = "*"
       }
     ]
   })
 }
 
-# Attach CloudWatch policy to the role
-resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
-  role       = aws_iam_role.ec2_s3_access_role.name
-  policy_arn = aws_iam_policy.cloudwatch_policy.arn
+# CloudWatch policy for metrics and logs
+resource "aws_iam_policy" "cloudwatch_policy" {
+  name        = "${var.environment}-cloudwatch-policy"
+  description = "Allow CloudWatch agent to publish logs and metrics"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "cloudwatch:PutMetricData",
+          "ec2:DescribeVolumes",
+          "ec2:DescribeTags",
+          "ec2:DescribeInstances",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups",
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action = [
+          "ssm:GetParameter",
+          "ssm:PutParameter"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*"
+      }
+    ]
+  })
 }
 
 # Attach the RDS policy to the role
@@ -162,10 +241,34 @@ resource "aws_iam_role_policy_attachment" "iam_access_attachment" {
   policy_arn = aws_iam_policy.iam_access_policy.arn
 }
 
-# Attach the policy to the role
+# Attach the S3 policy to the role
 resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
   role       = aws_iam_role.ec2_s3_access_role.name
   policy_arn = aws_iam_policy.s3_access_policy.arn
+}
+
+# Attach the KMS policy to the role
+resource "aws_iam_role_policy_attachment" "kms_access_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.kms_access_policy.arn
+}
+
+# Attach the Secrets Manager policy to the role
+resource "aws_iam_role_policy_attachment" "secrets_access_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.secrets_access_policy.arn
+}
+
+# Attach the Auto Scaling policy to the role
+resource "aws_iam_role_policy_attachment" "autoscaling_access_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.autoscaling_access_policy.arn
+}
+
+# Attach the CloudWatch policy to the role
+resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy.arn
 }
 
 # Create an instance profile for the role
