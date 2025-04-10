@@ -117,7 +117,7 @@ module "kms_ec2" {
   description             = "KMS key for EC2 encryption"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  tags                    = {
+  tags = {
     rotation_period_in_days = "90"
   }
 }
