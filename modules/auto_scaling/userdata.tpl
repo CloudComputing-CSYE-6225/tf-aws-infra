@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Install AWS CLI if not already installed
 if ! command -v aws &> /dev/null; then
   apt-get update
   apt-get install -y awscli

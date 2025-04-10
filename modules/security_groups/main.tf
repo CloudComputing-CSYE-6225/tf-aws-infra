@@ -3,15 +3,6 @@ resource "aws_security_group" "main" {
   description = "Security group for web application instances"
   vpc_id      = var.vpc_id
 
-  # SSH access from specific IP ranges
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow SSH access from specified IP ranges"
-  }
-
   # Application port access from the load balancer security group only
   ingress {
     from_port       = var.application_port

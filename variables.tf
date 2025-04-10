@@ -79,13 +79,6 @@ variable "db_username" {
   default     = "csye6225"
 }
 
-variable "db_password" {
-  description = "Master password for the RDS instance"
-  type        = string
-  sensitive   = true
-  # No default for security reasons - should be passed as a variable
-}
-
 variable "db_instance_class" {
   description = "The instance type of the RDS instance"
   type        = string
@@ -134,12 +127,6 @@ variable "domain_name" {
   default     = null
 }
 
-variable "key_usage" {
-  description = "Specifies the intended use of the key (ENCRYPT_DECRYPT or KEY_AGREEMENT)"
-  type        = string
-  default     = "ENCRYPT_DECRYPT"
-}
-
 variable "tags" {
   description = "A map of tags to assign to the key"
   type        = map(string)
@@ -150,4 +137,16 @@ variable "recovery_window_in_days" {
   description = "Number of days that AWS Secrets Manager waits before it can delete the secret"
   type        = number
   default     = 30
+}
+
+variable "create_acm_certificate" {
+  description = "Whether to create an ACM certificate (set to true for dev, false for demo)"
+  type        = bool
+  default     = true
+}
+
+variable "imported_certificate_arn" {
+  description = "ARN of the imported certificate (for demo environment)"
+  type        = string
+  default     = ""
 }

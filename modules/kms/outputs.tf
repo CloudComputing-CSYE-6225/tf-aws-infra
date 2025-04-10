@@ -1,6 +1,6 @@
 output "key_id" {
-  description = "The globally unique identifier for the key"
-  value       = aws_kms_key.key.key_id
+  description = "The ARN of the KMS key"
+  value       = aws_kms_key.key.arn
 }
 
 output "key_arn" {

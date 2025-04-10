@@ -1,8 +1,63 @@
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_role" "autoscaling_service_role" {
+  name = "AWSServiceRoleForAutoScaling"
+}
+
 resource "aws_kms_key" "key" {
-  description             = var.description
-  deletion_window_in_days = var.deletion_window_in_days
-  enable_key_rotation     = var.enable_key_rotation
-  key_usage               = var.key_usage
+  description              = var.description
+  deletion_window_in_days  = var.deletion_window_in_days
+  enable_key_rotation      = var.enable_key_rotation
+  key_usage                = var.key_usage
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+
+  # Add specific policy for EC2 KMS key
+  policy = var.key_name == "ec2" ? jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions",
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*",
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow EC2 service to use the key",
+        Effect = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        },
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+          "kms:CreateGrant"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow Auto Scaling service to use the key",
+        Effect = "Allow",
+        Principal = {
+          AWS = data.aws_iam_role.autoscaling_service_role.arn
+        },
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+          "kms:CreateGrant"
+        ],
+        Resource = "*"
+      }
+    ]
+  }) : null
 
   tags = merge(
     {
