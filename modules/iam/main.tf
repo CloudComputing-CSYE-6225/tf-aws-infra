@@ -285,7 +285,7 @@ resource "aws_iam_policy" "kms_decrypt_policy" {
           "kms:DescribeKey",
           "kms:GenerateDataKey"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           var.secrets_kms_key_arn,
           var.ec2_kms_key_arn,
