@@ -165,9 +165,24 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-# Store the database password in Secrets Manager
+data "aws_secretsmanager_secret" "existing_secret" {
+  name = "${var.environment}/db-password"
+
+  # This prevents errors when the secret doesn't exist
+  depends_on = [
+    module.kms_secretsmanager
+  ]
+}
+
+locals {
+  # Check if the secret exists
+  secret_exists = can(data.aws_secretsmanager_secret.existing_secret.id)
+}
+
+# Create or update the secret conditionally
 module "db_password_secret" {
   source                  = "./modules/secretsmanager"
+  count                   = local.secret_exists ? 0 : 1
   environment             = var.environment
   secret_name             = "db-password"
   description             = "RDS database password"
@@ -175,6 +190,13 @@ module "db_password_secret" {
   secret_string           = random_password.db_password.result
   recovery_window_in_days = var.recovery_window_in_days
   tags                    = var.tags
+}
+
+# If secret exists, just update the value
+resource "aws_secretsmanager_secret_version" "update_existing_secret" {
+  count         = local.secret_exists ? 1 : 0
+  secret_id     = data.aws_secretsmanager_secret.existing_secret.id
+  secret_string = random_password.db_password.result
 }
 
 module "acm" {
