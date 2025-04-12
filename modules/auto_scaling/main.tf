@@ -29,7 +29,6 @@ resource "aws_launch_template" "webapp" {
   user_data = base64encode(templatefile("${path.module}/userdata.tpl", {
     application_port        = var.application_port
     db_username             = var.db_username
-    db_password             = var.db_password
     db_host                 = var.db_host
     db_port                 = var.db_port
     db_name                 = var.db_name

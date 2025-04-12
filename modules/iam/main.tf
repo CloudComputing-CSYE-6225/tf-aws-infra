@@ -271,6 +271,67 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
   policy_arn = aws_iam_policy.cloudwatch_policy.arn
 }
 
+# Policy for KMS access
+resource "aws_iam_policy" "kms_decrypt_policy" {
+  name        = "${var.environment}-kms-decrypt-policy"
+  description = "Allow EC2 instances to decrypt using KMS keys"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey"
+        ]
+        Effect = "Allow"
+        Resource = [
+          var.secrets_kms_key_arn,
+          var.ec2_kms_key_arn,
+          var.rds_kms_key_arn,
+          var.s3_kms_key_arn
+        ]
+      }
+    ]
+  })
+}
+
+# Attach the KMS policy to the role
+resource "aws_iam_role_policy_attachment" "kms_decrypt_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.kms_decrypt_policy.arn
+}
+
+# Add Systems Manager policy
+resource "aws_iam_policy" "ssm_policy" {
+  name        = "${var.environment}-ssm-policy"
+  description = "Allow EC2 instances to use Systems Manager"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:UpdateInstanceInformation",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Attach the SSM policy to the role
+resource "aws_iam_role_policy_attachment" "ssm_attachment" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.ssm_policy.arn
+}
+
 # Create an instance profile for the role
 resource "aws_iam_instance_profile" "ec2_s3_profile" {
   name = "${var.environment}-ec2-s3-profile"

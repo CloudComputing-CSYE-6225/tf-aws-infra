@@ -38,3 +38,4 @@ terraform.rc
 tfplan
 *.lock.hcl
 .idea
+.DS_Store*
