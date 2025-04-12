@@ -165,33 +165,28 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+# Create a fixed name for the secret
+locals {
+  db_secret_name = "${var.environment}-db-password-1"
+}
+
+# Create the secret
 resource "aws_secretsmanager_secret" "db_password" {
-  name                    = "${var.environment}-db-credentials-${formatdate("YYYYMMDD", timestamp())}"
+  name                    = local.db_secret_name
   description             = "RDS database password"
   kms_key_id              = module.kms_secretsmanager.key_arn
   recovery_window_in_days = var.recovery_window_in_days
 
-  # Prevent recreation if it already exists
-  lifecycle {
-    prevent_destroy = false
-    ignore_changes = [
-      description,
-      kms_key_id,
-      recovery_window_in_days
-    ]
+  tags = {
+    Name        = local.db_secret_name
+    Environment = var.environment
   }
-
-  tags = var.tags
 }
 
 # If secret exists, just update the value
 resource "aws_secretsmanager_secret_version" "db_password" {
   secret_id     = aws_secretsmanager_secret.db_password.id
   secret_string = random_password.db_password.result
-
-  lifecycle {
-    prevent_destroy = false
-  }
 }
 
 module "acm" {
