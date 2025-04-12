@@ -27,7 +27,7 @@ DB_PASSWORD=$(aws secretsmanager get-secret-value \
   --output text)
 
 # Log the actual password (REMOVE AFTER DEBUGGING!)
-log_debug "Retrieved DB_PASSWORD=${DB_PASSWORD}"
+log_debug "Retrieved DB_PASSWORD=$DB_PASSWORD"
 
 # Create environment file for the application
 log_debug "Creating environment file at /opt/csye6225/webapp/.env"

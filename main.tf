@@ -165,38 +165,33 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-data "aws_secretsmanager_secret" "existing_secret" {
-  name = "${var.environment}/db-password"
-
-  # This prevents errors when the secret doesn't exist
-  depends_on = [
-    module.kms_secretsmanager
-  ]
-}
-
-locals {
-  # Check if the secret exists
-  secret_exists = can(data.aws_secretsmanager_secret.existing_secret.id)
-}
-
-# Create or update the secret conditionally
-module "db_password_secret" {
-  source                  = "./modules/secretsmanager"
-  count                   = local.secret_exists ? 0 : 1
-  environment             = var.environment
-  secret_name             = "db-password"
+resource "aws_secretsmanager_secret" "db_password" {
+  name                    = "${var.environment}/db-password"
   description             = "RDS database password"
   kms_key_id              = module.kms_secretsmanager.key_arn
-  secret_string           = random_password.db_password.result
   recovery_window_in_days = var.recovery_window_in_days
-  tags                    = var.tags
+  
+  # Prevent recreation if it already exists
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [
+      description,
+      kms_key_id,
+      recovery_window_in_days
+    ]
+  }
+
+  tags = var.tags
 }
 
 # If secret exists, just update the value
-resource "aws_secretsmanager_secret_version" "update_existing_secret" {
-  count         = local.secret_exists ? 1 : 0
-  secret_id     = data.aws_secretsmanager_secret.existing_secret.id
+resource "aws_secretsmanager_secret_version" "db_password" {
+  secret_id     = aws_secretsmanager_secret.db_password.id
   secret_string = random_password.db_password.result
+  
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 module "acm" {
