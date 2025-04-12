@@ -166,14 +166,14 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
-  name                    = "${var.environment}/db-password"
+  name                    = "${var.environment}-db-credentials-${formatdate("YYYYMMDD", timestamp())}"
   description             = "RDS database password"
   kms_key_id              = module.kms_secretsmanager.key_arn
   recovery_window_in_days = var.recovery_window_in_days
 
   # Prevent recreation if it already exists
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
     ignore_changes = [
       description,
       kms_key_id,
@@ -190,7 +190,7 @@ resource "aws_secretsmanager_secret_version" "db_password" {
   secret_string = random_password.db_password.result
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 

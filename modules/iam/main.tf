@@ -161,10 +161,11 @@ resource "aws_iam_policy" "secrets_access_policy" {
       {
         Action = [
           "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:ListSecrets"
         ]
         Effect   = "Allow"
-        Resource = "arn:aws:secretsmanager:*:*:secret:${var.environment}/*"
+        Resource = "*"
       }
     ]
   })
@@ -285,13 +286,8 @@ resource "aws_iam_policy" "kms_decrypt_policy" {
           "kms:DescribeKey",
           "kms:GenerateDataKey"
         ]
-        Effect = "Allow"
-        Resource = [
-          var.secrets_kms_key_arn,
-          var.ec2_kms_key_arn,
-          var.rds_kms_key_arn,
-          var.s3_kms_key_arn
-        ]
+        Effect   = "Allow"
+        Resource = "*"
       }
     ]
   })

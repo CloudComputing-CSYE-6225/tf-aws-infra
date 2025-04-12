@@ -35,7 +35,7 @@ resource "aws_launch_template" "webapp" {
     s3_bucket_name          = var.s3_bucket_name
     environment             = var.environment
     secrets_manager_region  = var.aws_region
-    db_password_secret_name = "${var.environment}/db-password"
+    db_password_secret_name = "${var.environment}-db-credentials-${formatdate("YYYYMMDD", timestamp())}"
   }))
 
   tag_specifications {
