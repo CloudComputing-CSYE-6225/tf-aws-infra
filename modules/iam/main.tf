@@ -273,7 +273,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
 }
 
 # Policy for KMS access
- resource "aws_iam_policy" "kms_decrypt_policy" {
+resource "aws_iam_policy" "kms_decrypt_policy" {
   name        = "${var.environment}-kms-decrypt-policy"
   description = "Allow EC2 instances to decrypt using KMS keys"
 
@@ -287,7 +287,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
           "kms:GenerateDataKey"
         ]
         Effect   = "Allow"
-        Resource = "*" 
+        Resource = "*"
       }
     ]
   })
